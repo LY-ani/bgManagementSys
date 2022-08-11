@@ -43,7 +43,8 @@
       <el-table-column type="selection" width="50"></el-table-column>
       <el-table-column prop="name" label="姓名" width="150"> </el-table-column>
       <el-table-column prop="age" label="年龄" width="120"> </el-table-column>
-      <el-table-column prop="sex" label="性别" width="120"> </el-table-column>
+      <el-table-column prop="sexLabel" label="性别" width="120">
+      </el-table-column>
       <el-table-column
         prop="birth"
         label="出生日期"
@@ -147,12 +148,29 @@ export default {
   },
   methods: {
     batchDelete() {
-      this.axios({ url: `/user/batchDelete?ids=${this.ids.join(",")}` }).then(
-        (res) => {
-          console.log(res);
-          this.getUserList();
-        }
-      );
+      this.$confirm("此操作将永久删除多条用户数据, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          this.axios({
+            url: `/user/batchDelete?ids=${this.ids.join(",")}`,
+          }).then((res) => {
+            console.log(res);
+            this.getUserList();
+          });
+          this.$message({
+            type: "success",
+            message: "删除成功!",
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
     },
     // 批量选择
     handleSelectionChange(val) {
@@ -163,10 +181,27 @@ export default {
       });
     },
     handleDelete(item) {
-      this.axios({ url: `/user/delete?id=${item.row.id}` }).then((res) => {
-        console.log(res);
-        this.getUserList();
-      });
+      this.$confirm("此操作将永久删除该用户数据, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          this.axios({ url: `/user/delete?id=${item.row.id}` }).then((res) => {
+            console.log(res);
+            this.getUserList();
+          });
+          this.$message({
+            type: "success",
+            message: "删除成功!",
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
     },
     handleEdit(item) {
       this.isShow = true;
@@ -190,9 +225,13 @@ export default {
         .then((res) => {
           console.log(res);
           this.total = res.data.count;
-          this.tableData = res.data.list;
-          this.tableData.filter((item) => {
-            item.sex = item.sex === 1 ? "男" : "女";
+          // this.tableData = res.data.list;
+          // this.tableData.filter((item) => {
+          //   item.sex = item.sex === 1 ? "男" : "女";
+          // });
+          this.tableData = res.data.list.map((item) => {
+            item.sexLabel = item.sex === 1 ? "男" : "女";
+            return item;
           });
         });
     },
